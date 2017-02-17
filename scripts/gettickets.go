@@ -1,4 +1,4 @@
-package main
+package gettickets
 
 import (
 	"fmt"
@@ -25,6 +25,6 @@ func main() {
 	fmt.Println(len(tickets))
 
 	for _, ticket := range tickets {
-		fmt.Println(ticket.TicketID + " = " + strconv.FormatInt(ticket.SocialID, 10) + " - " + ticket.Email + " - Bonus: " + strconv.FormatBool(ticket.Bonus))
+		fmt.Println(ticket.TicketID + " - " + ticket.Email + " - Bonus: " + strconv.FormatBool(ticket.Bonus))
 	}
 }

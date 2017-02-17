@@ -15,7 +15,7 @@ service Tickets {
 // The request message containing the user's name.
 message TicketRequest {
   string email = 1;
-  int64 facebookid = 2;
+  int64 socialid = 2;
   int64 referrer = 3;
 }
 
@@ -26,7 +26,7 @@ message TicketReply {
   	message Ticket {
         string TicketID = 1;
         string Email = 2;
-        int64 FacebookID = 3;
+        int64 SocialID = 3;
         int64 Referrer = 4;
         bool Bonus = 5;
     } 

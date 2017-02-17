@@ -22,14 +22,14 @@ type server struct{}
 // SayHello implements helloworld.GreeterServer
 func (s *server) NewTicket(ctx context.Context, in *pb.TicketRequest) (*pb.TicketReply, error) {
 	tk := new(tickets.Tickets)
-	tickets := tk.NewTicket(in.GetEmail(), in.GetFacebookid(), in.GetReferrer())
+	tickets := tk.NewTicket(in.GetEmail(), in.GetSocialid(), in.GetReferrer())
 	return &pb.TicketReply{Tickets: tickets}, nil
 }
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) GetTickets(ctx context.Context, in *pb.TicketRequest) (*pb.TicketReply, error) {
 	tk := new(tickets.Tickets)
-	tickets := tk.GetTickets(in.GetFacebookid())
+	tickets := tk.GetTickets(in.GetSocialid())
 	return &pb.TicketReply{Tickets: tickets}, nil
 }
 

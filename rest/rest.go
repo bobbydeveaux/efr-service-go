@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bobbydeveaux/efr-service-go/rest/auth"
 	"github.com/bobbydeveaux/efr-service-go/rest/tickets"
 	"github.com/gorilla/mux"
 )
@@ -17,6 +18,7 @@ func Serve() {
 
 	router.HandleFunc("/newticket", tickets.NewTicket).Methods("GET")
 	router.HandleFunc("/gettickets", tickets.GetTickets).Methods("GET")
+	router.HandleFunc("/token", auth.GetToken).Methods("GET")
 
 	http.ListenAndServe(":8181", nil)
 }

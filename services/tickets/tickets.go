@@ -19,7 +19,7 @@ var db = dynamo.New(session.New(), &aws.Config{
 	Region: aws.String("eu-west-1")})
 var table = db.Table("Tickets")
 
-func (a *Tickets) NewTicket(email string, facebookID int64, referrer int64) []*pb.TicketReply_Ticket {
+func (a *Tickets) NewTicket(email string, socialID int64, referrer int64) []*pb.TicketReply_Ticket {
 
 	var exist []*pb.TicketReply_Ticket
 	//err := table.Get("Email", email).All(&exist)
@@ -58,12 +58,15 @@ func (a *Tickets) NewTicket(email string, facebookID int64, referrer int64) []*p
 
 	// Make the ticket
 	ticket := &pb.TicketReply_Ticket{
-		TicketID:   ticketID,
-		Email:      email,
-		FacebookID: facebookID,
-		Referrer:   referrer,
-		Bonus:      false,
+		TicketID: ticketID,
+		Email:    email,
+		SocialID: socialID,
+		Referrer: referrer,
+		Bonus:    false,
 	}
+
+	log.Println("Creating ticket...")
+	log.Println(ticket)
 
 	// Insert into dynamo
 	go table.Put(ticket).Run()
@@ -73,10 +76,10 @@ func (a *Tickets) NewTicket(email string, facebookID int64, referrer int64) []*p
 	return tickets
 }
 
-func (a *Tickets) GetTickets(facebookID int64) []*pb.TicketReply_Ticket {
+func (a *Tickets) GetTickets(socialID int64) []*pb.TicketReply_Ticket {
 	var tickets []*pb.TicketReply_Ticket
 	//err := table.Get("Email", email).All(&exist)
-	err := table.Scan().Filter("FacebookID = ?", facebookID).Consistent(true).All(&tickets)
+	err := table.Scan().Filter("SocialID = ?", socialID).Consistent(true).All(&tickets)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -86,8 +89,12 @@ func (a *Tickets) GetTickets(facebookID int64) []*pb.TicketReply_Ticket {
 
 func checkReferrer(referrer int64) (bool, string) {
 	var exist []pb.TicketReply_Ticket
+	log.Println("Checking referrer")
+
+	log.Println(exist)
+
 	//err := table.Get("Email", email).All(&exist)
-	err := table.Scan().Filter("FacebookID = ?", referrer).Consistent(true).All(&exist)
+	err := table.Scan().Filter("SocialID = ?", referrer).Consistent(true).All(&exist)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -109,11 +116,11 @@ func referralTicket(referrer int64, referrerEmail string) {
 
 	// Make the ticket
 	ticket := &pb.TicketReply_Ticket{
-		TicketID:   ticketID,
-		Email:      referrerEmail,
-		FacebookID: referrer,
-		Referrer:   0,
-		Bonus:      true,
+		TicketID: ticketID,
+		Email:    referrerEmail,
+		SocialID: referrer,
+		Referrer: 0,
+		Bonus:    true,
 	}
 
 	// Insert into dynamo

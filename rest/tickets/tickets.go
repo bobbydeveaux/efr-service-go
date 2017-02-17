@@ -7,7 +7,9 @@ import (
 	"net/http"
 
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
-
+	pbu "github.com/bobbydeveaux/efr-service-go/proto/user"
+	"github.com/bobbydeveaux/efr-service-go/rest/auth"
+	"github.com/dvsekhvalnov/jose2go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -20,14 +22,35 @@ const (
 
 func NewTicket(w http.ResponseWriter, r *http.Request) {
 
+	var err error
+
 	fmt.Println("GET params were:", r.URL.Query())
 
-	email := r.URL.Query().Get("email")
-	facebookid := r.URL.Query().Get("facebookid")
+	jwt := r.URL.Query().Get("jwt")
+	if jwt == "" {
+		b := []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
 	referrer := r.URL.Query().Get("referrer")
 
-	int64facebook, _ := strconv.ParseInt(facebookid, 10, 64)
 	int64referrer, _ := strconv.ParseInt(referrer, 10, 64)
+
+	// decode the jwt to grab the email.
+	passphrase := auth.GetPassphrase()
+
+	strPayload, _, err := jose.Decode(jwt, passphrase)
+	payload := []byte(strPayload)
+
+	var User pbu.User
+	err = json.Unmarshal(payload, &User)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -38,7 +61,7 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 
 	// Contact the server and print out its response.
 
-	rpc, err := c.NewTicket(context.Background(), &pb.TicketRequest{Email: email, Facebookid: int64facebook, Referrer: int64referrer})
+	rpc, err := c.NewTicket(context.Background(), &pb.TicketRequest{Email: User.GetEmail(), Socialid: User.GetSocialID(), Referrer: int64referrer})
 	if err != nil {
 		fmt.Println("could not greet: %v", err)
 	}
@@ -60,9 +83,9 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("GET params were:", r.URL.Query())
 
-	facebookid := r.URL.Query().Get("facebookid")
+	socialid := r.URL.Query().Get("socialid")
 
-	int64facebook, _ := strconv.ParseInt(facebookid, 10, 64)
+	int64social, _ := strconv.ParseInt(socialid, 10, 64)
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
@@ -74,9 +97,9 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	// Contact the server and print out its response.
 
-	rpc, err := c.GetTickets(context.Background(), &pb.TicketRequest{Facebookid: int64facebook})
+	rpc, err := c.GetTickets(context.Background(), &pb.TicketRequest{Socialid: int64social})
 	if err != nil {
-		fmt.Println("could not greet: %v", err)
+		fmt.Println("could not greet: %s", err)
 	}
 
 	b, err := json.Marshal(rpc.Tickets)
