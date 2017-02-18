@@ -18,7 +18,7 @@ testrace:
 dev: get-deps fmt 
 	@EFR_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
 
-bin: get-deps fmt 
+bin: 
 	sh -c "'$(CURDIR)/scripts/buildbin.sh'"
 
 # vet runs the Go source code static analysis tool `vet` to find
