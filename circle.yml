@@ -1,0 +1,14 @@
+dependencies:
+  pre:
+    - make bin
+    - sudo pip install awsebcli
+
+test:
+  override:
+     - "true"
+
+deployment:
+  prod:
+    branch: master
+    commands:
+      - eb deploy 

@@ -1,7 +1,7 @@
 TEST?=./...
 GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 
-default: fmt test testrace vet proto
+default: fmt test testrace vet protoc
 
 # test runs the test suite and vets the code
 test: get-deps fmtcheck
@@ -16,7 +16,10 @@ testrace:
 # dev creates binaries for testing locally. These are put
 # into ./bin/ as well as $GOPATH/bin
 dev: get-deps fmt 
-	@BLOG_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
+	@EFR_DEV=1 sh -c "'$(CURDIR)/scripts/build.sh'"
+
+bin: get-deps fmt 
+	sh -c "'$(CURDIR)/scripts/buildbin.sh'"
 
 # vet runs the Go source code static analysis tool `vet` to find
 # any common errors.
@@ -31,8 +34,8 @@ vet:
 
 get-deps:
 	@echo "==> Fetching dependencies"
-	#@go get -v $(TEST)
-	#@go get -u github.com/golang/lint/golint
+	@go get -v $(TEST)
+	@go get -u github.com/golang/lint/golint
 	
 
 fmt:

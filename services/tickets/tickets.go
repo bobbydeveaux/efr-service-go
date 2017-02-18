@@ -7,6 +7,7 @@ import (
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
 	"github.com/bobbydeveaux/randomizr"
 	"log"
+	"os"
 	"strconv"
 )
 
@@ -14,7 +15,7 @@ type Tickets struct {
 }
 
 var db = dynamo.New(session.New(), &aws.Config{
-	Endpoint:                      aws.String("http://localhost:8000"),
+	Endpoint:                      aws.String(os.Getenv("DYNAMO_ADDR")),
 	CredentialsChainVerboseErrors: aws.Bool(true),
 	Region: aws.String("eu-west-1")})
 var table = db.Table("Tickets")

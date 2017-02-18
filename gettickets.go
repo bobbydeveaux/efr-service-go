@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func main() {
+func getAllTickets() {
 	db := dynamo.New(session.New(), &aws.Config{
 		Endpoint:                      aws.String("http://localhost:8000"),
 		CredentialsChainVerboseErrors: aws.Bool(true),
