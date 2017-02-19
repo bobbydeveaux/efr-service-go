@@ -31,7 +31,4 @@ deployment:
   prod:
     branch: master
     commands:
-      - ls -la ~/.aws/
-      - cat ~/.aws/credentials
-      - eb use Default-Environment
-      - eb deploy
+      - ./deploy.sh $CIRCLE_SHA1
