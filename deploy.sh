@@ -11,4 +11,4 @@ aws elasticbeanstalk create-application-version --application-name "My First Ela
 
 # Update Elastic Beanstalk environment to new version
 aws elasticbeanstalk update-environment --environment-name Default-Environment \
-    --version-label $SHA1
+    --version-label $SHA1 --region=eu-west-1
