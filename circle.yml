@@ -15,13 +15,6 @@ checkout:
 dependencies:
   pre:
     - make bin
-    - sudo apt-get install python-dev  # for python2.x installs
-    - sudo apt-get install python3-dev
-    - sudo apt-get purge -y python-pip
-    - sudo wget https://bootstrap.pypa.io/get-pip.py
-    - sudo python  ./get-pip.py
-    - sudo apt-get install python-pip
-    - sudo pip install awsebcli
 
 test:
   override:
