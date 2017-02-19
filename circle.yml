@@ -31,8 +31,5 @@ deployment:
   prod:
     branch: master
     commands:
-      - pwd
-      - ls -la
-      - sudo pwd
-      - sudo ls -la
-      - sudo eb deploy 
+      - eb use Default-Environment
+      - eb deploy
