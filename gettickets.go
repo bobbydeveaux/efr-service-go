@@ -48,7 +48,7 @@ func pickwinner() {
 	var luckyTicket = &tickets[r.Intn(len(tickets))]
 	fmt.Println("Magic 8-Ball says:", luckyTicket.GetEmail())
 
-	var TimeNow = time.Now().UnixNano()
+	var TimeNow = time.Now().Unix()
 	strTimeNow := strconv.FormatInt(TimeNow, 10)
 	var winner = &pb.WinnerReply_Winner{
 		WinnerID:      TimeNow,

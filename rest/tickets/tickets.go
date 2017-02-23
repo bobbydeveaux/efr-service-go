@@ -83,9 +83,28 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("GET params were:", r.URL.Query())
 
-	socialid := r.URL.Query().Get("socialid")
+	var err error
 
-	int64social, _ := strconv.ParseInt(socialid, 10, 64)
+	jwt := r.URL.Query().Get("jwt")
+	if jwt == "" {
+		b := []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	// decode the jwt to grab the email.
+	passphrase := auth.GetPassphrase()
+
+	strPayload, _, err := jose.Decode(jwt, passphrase)
+	payload := []byte(strPayload)
+
+	var User pbu.User
+	err = json.Unmarshal(payload, &User)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
@@ -97,7 +116,7 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	// Contact the server and print out its response.
 
-	rpc, err := c.GetTickets(context.Background(), &pb.TicketRequest{Socialid: int64social})
+	rpc, err := c.GetTickets(context.Background(), &pb.TicketRequest{Socialid: User.GetSocialID()})
 	if err != nil {
 		fmt.Println("could not greet: %s", err)
 	}
