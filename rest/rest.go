@@ -19,6 +19,7 @@ func Serve() {
 	router.HandleFunc("/newticket", tickets.NewTicket).Methods("GET")
 	router.HandleFunc("/gettickets", tickets.GetTickets).Methods("GET")
 	router.HandleFunc("/token", auth.GetToken).Methods("GET")
+	router.HandleFunc("/winners", tickets.GetWinners).Methods("GET")
 
 	http.ListenAndServe(":8181", nil)
 }

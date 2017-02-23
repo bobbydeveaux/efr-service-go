@@ -1,7 +1,4 @@
-
 syntax = "proto3";
-
-
 
 package Tickets;
 
@@ -10,6 +7,7 @@ service Tickets {
   // Sends a greeting
   rpc NewTicket(TicketRequest) returns (TicketReply) {}
   rpc GetTickets(TicketRequest) returns (TicketReply) {}
+  rpc GetWinners(WinnerRequest) returns (WinnerReply) {}
 }
 
 // The request message containing the user's name.
@@ -32,4 +30,22 @@ message TicketReply {
     } 
  
     repeated Ticket Tickets = 2;
+}
+
+// The request message containing the user's name.
+message WinnerRequest {
+  string email = 1;
+}
+
+message WinnerReply {
+    
+    message Winner {
+    int64 WinnerID = 1;
+    string DateTime = 2;
+    string Entrants = 3;
+    TicketReply.Ticket WinningTicket = 4;
+    bool Claimed = 5;
+  }
+ 
+    repeated Winner Winners = 1;
 }

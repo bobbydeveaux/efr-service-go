@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bobbydeveaux/dynamo"
@@ -86,6 +87,19 @@ func (a *Tickets) GetTickets(socialID int64) []*pb.TicketReply_Ticket {
 	}
 
 	return tickets
+}
+
+func (a *Tickets) GetWinners() []*pb.WinnerReply_Winner {
+	var winners []*pb.WinnerReply_Winner
+	table := db.Table("Winners")
+	err := table.Scan().Consistent(true).All(&winners)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	fmt.Println("Winner count:", len(winners))
+
+	return winners
 }
 
 func checkReferrer(referrer int64) (bool, string) {

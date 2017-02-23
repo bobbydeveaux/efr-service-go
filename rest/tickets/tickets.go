@@ -114,3 +114,35 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(b)
 }
+
+func GetWinners(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("GET params were:", r.URL.Query())
+
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		fmt.Println("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewTicketsClient(conn)
+
+	// Contact the server and print out its response.
+
+	rpc, err := c.GetWinners(context.Background(), &pb.WinnerRequest{Email: "roger@gmail.com"})
+	if err != nil {
+		fmt.Println("could not greet: %s", err)
+	}
+
+	b, err := json.Marshal(rpc.Winners)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	if string(b) == "null" {
+		b = []byte("[]")
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write(b)
+}

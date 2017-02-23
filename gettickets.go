@@ -6,25 +6,56 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
 	"github.com/guregu/dynamo"
+	"log"
+	"math/rand"
 	"strconv"
+	"time"
 )
 
-func getAllTickets() {
+func test() {
+
 	db := dynamo.New(session.New(), &aws.Config{
-		Endpoint:                      aws.String("http://localhost:8000"),
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		Region: aws.String("eu-west-1")})
-	table := db.Table("Tickets")
+	tblWinners := db.Table("Winners")
+	var winners []*pb.WinnerReply_Winner
+	//err := table.Get("Email", email).All(&exist)
+	err := tblWinners.Scan().All(&winners)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	fmt.Println("Winner count:", len(winners))
+
+}
+
+func main() {
+	db := dynamo.New(session.New(), &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		Region: aws.String("eu-west-1")})
+	tblTickets := db.Table("Tickets")
+	tblWinners := db.Table("Winners")
 
 	var tickets []pb.TicketReply_Ticket
-	err := table.Scan().All(&tickets)
+	err := tblTickets.Scan().All(&tickets)
 	if err != nil {
 		fmt.Printf(err.Error())
 	}
 
-	fmt.Println(len(tickets))
+	fmt.Printf("We have %d raffle tickets in the pot\n", len(tickets))
 
-	for _, ticket := range tickets {
-		fmt.Println(ticket.TicketID + " = " + strconv.FormatInt(ticket.SocialID, 10) + " - " + ticket.Email + " - Bonus: " + strconv.FormatBool(ticket.Bonus))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var luckyTicket = &tickets[r.Intn(len(tickets))]
+	fmt.Println("Magic 8-Ball says:", luckyTicket.GetEmail())
+
+	var TimeNow = time.Now().UnixNano()
+	strTimeNow := strconv.FormatInt(TimeNow, 10)
+	var winner = &pb.WinnerReply_Winner{
+		WinnerID:      TimeNow,
+		DateTime:      strTimeNow,
+		Entrants:      strconv.Itoa(len(tickets)),
+		WinningTicket: luckyTicket,
+		Claimed:       false,
 	}
+	tblWinners.Put(winner).Run()
 }

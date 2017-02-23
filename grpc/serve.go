@@ -33,6 +33,13 @@ func (s *server) GetTickets(ctx context.Context, in *pb.TicketRequest) (*pb.Tick
 	return &pb.TicketReply{Tickets: tickets}, nil
 }
 
+// SayHello implements helloworld.GreeterServer
+func (s *server) GetWinners(ctx context.Context, in *pb.WinnerRequest) (*pb.WinnerReply, error) {
+	tk := new(tickets.Tickets)
+	winners := tk.GetWinners()
+	return &pb.WinnerReply{Winners: winners}, nil
+}
+
 func Serve() {
 
 	lis, err := net.Listen("tcp", port)
