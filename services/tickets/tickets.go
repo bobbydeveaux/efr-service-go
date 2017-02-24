@@ -162,7 +162,7 @@ func checkReferrer(referrer int64) (bool, string) {
 	log.Println(exist)
 
 	//err := table.Get("Email", email).All(&exist)
-	err := table.Scan().Filter("SocialID = ?", referrer).Consistent(true).All(&exist)
+	err := table.Scan().Filter("SocialID = ?", strconv.FormatInt(referrer, 10)).Consistent(true).All(&exist)
 
 	if err != nil {
 		log.Println(err.Error())
