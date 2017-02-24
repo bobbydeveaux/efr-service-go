@@ -7,7 +7,7 @@ package User;
 
 // The request message containing the user's name.
 message User {
-  int64 SocialID   = 1;
+  string SocialID   = 1;
   string Email     = 2;
   string FirstName = 3;
   string Name      = 4;

@@ -1,7 +1,6 @@
 package tickets
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bobbydeveaux/dynamo"
@@ -9,6 +8,7 @@ import (
 	"github.com/bobbydeveaux/randomizr"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -21,8 +21,9 @@ var db = dynamo.New(session.New(), &aws.Config{
 	Region: aws.String("eu-west-1")})
 var table = db.Table("Tickets")
 
-func (a *Tickets) NewTicket(email string, socialID int64, referrer int64) []*pb.TicketReply_Ticket {
+func (a *Tickets) NewTicket(email string, socialID string, referrer int64) []*pb.TicketReply_Ticket {
 
+	log.Println("New Ticket")
 	var exist []*pb.TicketReply_Ticket
 	//err := table.Get("Email", email).All(&exist)
 	err := table.Scan().Filter("Email = ?", email).Consistent(true).All(&exist)
@@ -78,7 +79,7 @@ func (a *Tickets) NewTicket(email string, socialID int64, referrer int64) []*pb.
 	return tickets
 }
 
-func (a *Tickets) GetTickets(socialID int64) []*pb.TicketReply_Ticket {
+func (a *Tickets) GetTickets(socialID string) []*pb.TicketReply_Ticket {
 	var tickets []*pb.TicketReply_Ticket
 	//err := table.Get("Email", email).All(&exist)
 	err := table.Scan().Filter("SocialID = ?", socialID).Consistent(true).All(&tickets)
@@ -89,6 +90,38 @@ func (a *Tickets) GetTickets(socialID int64) []*pb.TicketReply_Ticket {
 	return tickets
 }
 
+// By is the type of a "less" function that defines the ordering of its Planet arguments.
+type By func(w1, w2 *pb.WinnerReply_Winner) bool
+
+// Sort is a method on the function type, By, that sorts the argument slice according to the function.
+func (by By) Sort(winners []*pb.WinnerReply_Winner) {
+	ps := &winnerSorter{
+		winners: winners,
+		by:      by, // The Sort method's receiver is the function (closure) that defines the sort order.
+	}
+	sort.Sort(ps)
+}
+
+type winnerSorter struct {
+	winners []*pb.WinnerReply_Winner
+	by      func(w1, w2 *pb.WinnerReply_Winner) bool
+}
+
+// Len is part of sort.Interface.
+func (s *winnerSorter) Len() int {
+	return len(s.winners)
+}
+
+// Swap is part of sort.Interface.
+func (s *winnerSorter) Swap(i, j int) {
+	s.winners[i], s.winners[j] = s.winners[j], s.winners[i]
+}
+
+// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
+func (s *winnerSorter) Less(i, j int) bool {
+	return s.by(s.winners[i], s.winners[j])
+}
+
 func (a *Tickets) GetWinners() []*pb.WinnerReply_Winner {
 	var winners []*pb.WinnerReply_Winner
 	table := db.Table("Winners")
@@ -97,9 +130,29 @@ func (a *Tickets) GetWinners() []*pb.WinnerReply_Winner {
 		log.Println(err.Error())
 	}
 
-	fmt.Println("Winner count:", len(winners))
+	dateTime := func(w1, w2 *pb.WinnerReply_Winner) bool {
+		return w1.WinnerID > w2.WinnerID
+	}
+
+	By(dateTime).Sort(winners)
 
 	return winners
+}
+
+func (a *Tickets) ClaimWin(socialID string) bool {
+
+	winners := a.GetWinners()
+	if winners[0].WinningTicket.GetSocialID() != socialID {
+		return false
+	}
+
+	log.Println("Claiming Win")
+	winners[0].Claimed = true
+
+	table := db.Table("Winners")
+	go table.Put(winners[0]).Run()
+
+	return true
 }
 
 func checkReferrer(referrer int64) (bool, string) {
@@ -133,7 +186,7 @@ func referralTicket(referrer int64, referrerEmail string) {
 	ticket := &pb.TicketReply_Ticket{
 		TicketID: ticketID,
 		Email:    referrerEmail,
-		SocialID: referrer,
+		SocialID: strconv.FormatInt(referrer, 64),
 		Referrer: 0,
 		Bonus:    true,
 	}

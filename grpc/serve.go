@@ -40,6 +40,13 @@ func (s *server) GetWinners(ctx context.Context, in *pb.WinnerRequest) (*pb.Winn
 	return &pb.WinnerReply{Winners: winners}, nil
 }
 
+// SayHello implements helloworld.GreeterServer
+func (s *server) ClaimWin(ctx context.Context, in *pb.ClaimRequest) (*pb.ClaimReply, error) {
+	tk := new(tickets.Tickets)
+	claim := tk.ClaimWin(in.GetSocialID())
+	return &pb.ClaimReply{Success: claim}, nil
+}
+
 func Serve() {
 
 	lis, err := net.Listen("tcp", port)

@@ -8,12 +8,13 @@ service Tickets {
   rpc NewTicket(TicketRequest) returns (TicketReply) {}
   rpc GetTickets(TicketRequest) returns (TicketReply) {}
   rpc GetWinners(WinnerRequest) returns (WinnerReply) {}
+  rpc ClaimWin(ClaimRequest) returns (ClaimReply) {}
 }
 
 // The request message containing the user's name.
 message TicketRequest {
   string email = 1;
-  int64 socialid = 2;
+  string socialid = 2;
   int64 referrer = 3;
 }
 
@@ -24,7 +25,7 @@ message TicketReply {
   	message Ticket {
         string TicketID = 1;
         string Email = 2;
-        int64 SocialID = 3;
+        string SocialID = 3;
         int64 Referrer = 4;
         bool Bonus = 5;
     } 
@@ -48,4 +49,12 @@ message WinnerReply {
   }
  
     repeated Winner Winners = 1;
+}
+
+message ClaimRequest {
+  string SocialID = 1;
+}
+
+message ClaimReply {
+  bool Success = 1;
 }

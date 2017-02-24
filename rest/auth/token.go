@@ -8,7 +8,6 @@ import (
 	"github.com/dvsekhvalnov/jose2go"
 	fb "github.com/huandu/facebook"
 	"net/http"
-	"strconv"
 )
 
 const passphrase string = "arse string"
@@ -44,10 +43,8 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	int64socialId, err := strconv.ParseInt(res["id"].(string), 10, 64)
-
 	var User = &pb.User{
-		SocialID:  int64socialId,
+		SocialID:  res["id"].(string),
 		Email:     res["email"].(string),
 		FirstName: res["first_name"].(string),
 		Name:      res["name"].(string),

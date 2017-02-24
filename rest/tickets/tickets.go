@@ -37,7 +37,7 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 	referrer := r.URL.Query().Get("referrer")
 
 	int64referrer, _ := strconv.ParseInt(referrer, 10, 64)
-
+	fmt.Println("WAAT")
 	// decode the jwt to grab the email.
 	passphrase := auth.GetPassphrase()
 
@@ -164,4 +164,47 @@ func GetWinners(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(b)
+}
+
+func ClaimWin(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	jwt := r.URL.Query().Get("jwt")
+	if jwt == "" {
+		b := []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	// decode the jwt to grab the email.
+	passphrase := auth.GetPassphrase()
+
+	strPayload, _, err := jose.Decode(jwt, passphrase)
+	payload := []byte(strPayload)
+
+	var User pbu.User
+	err = json.Unmarshal(payload, &User)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		fmt.Println("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewTicketsClient(conn)
+
+	rpc, err := c.ClaimWin(context.Background(), &pb.ClaimRequest{SocialID: User.GetSocialID()})
+
+	b, err := json.Marshal(rpc)
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write(b)
+	return
+
 }

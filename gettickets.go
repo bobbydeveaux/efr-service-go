@@ -29,7 +29,7 @@ func test() {
 
 }
 
-func pickwinner() {
+func pickWinner() {
 	db := dynamo.New(session.New(), &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		Region: aws.String("eu-west-1")})
