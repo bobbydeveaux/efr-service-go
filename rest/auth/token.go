@@ -35,7 +35,16 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		"access_token": accessToken,
 	})
 
-	int64socialId, _ := strconv.ParseInt(res["id"].(string), 10, 64)
+	fmt.Println(res["id"])
+	if res["id"] == nil {
+		var b = []byte("{\"error\": \"invalid access token\"}")
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	int64socialId, err := strconv.ParseInt(res["id"].(string), 10, 64)
 
 	var User = &pb.User{
 		SocialID:  int64socialId,
