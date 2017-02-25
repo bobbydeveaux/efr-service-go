@@ -186,7 +186,7 @@ func referralTicket(referrer int64, referrerEmail string) {
 	ticket := &pb.TicketReply_Ticket{
 		TicketID: ticketID,
 		Email:    referrerEmail,
-		SocialID: strconv.FormatInt(referrer, 64),
+		SocialID: strconv.FormatInt(referrer, 10),
 		Referrer: 0,
 		Bonus:    true,
 	}

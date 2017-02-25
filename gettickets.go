@@ -8,6 +8,7 @@ import (
 	"github.com/guregu/dynamo"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 )
@@ -15,6 +16,7 @@ import (
 func test() {
 
 	db := dynamo.New(session.New(), &aws.Config{
+		Endpoint:                      aws.String(os.Getenv("DYNAMO_ADDR")),
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		Region: aws.String("eu-west-1")})
 	tblWinners := db.Table("Winners")
@@ -31,6 +33,7 @@ func test() {
 
 func pickWinner() {
 	db := dynamo.New(session.New(), &aws.Config{
+		Endpoint:                      aws.String(os.Getenv("DYNAMO_ADDR")),
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		Region: aws.String("eu-west-1")})
 	tblTickets := db.Table("Tickets")
