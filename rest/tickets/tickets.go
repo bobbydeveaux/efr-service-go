@@ -51,6 +51,13 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err.Error())
 	}
 
+	if err != nil || User.GetEmail() == "" {
+		var b = []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
