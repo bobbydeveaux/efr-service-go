@@ -41,12 +41,13 @@ message WinnerRequest {
 message WinnerReply {
     
     message Winner {
-    int64 WinnerID = 1;
-    string DateTime = 2;
-    string Entrants = 3;
-    TicketReply.Ticket WinningTicket = 4;
-    bool Claimed = 5;
-  }
+      int64 WinnerID = 1;
+      string DateTime = 2;
+      string Entrants = 3;
+      TicketReply.Ticket WinningTicket = 4;
+      bool Claimed = 5;
+      int64 MoneyPot = 6;
+    }
  
     repeated Winner Winners = 1;
 }

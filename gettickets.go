@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
+	s "github.com/bobbydeveaux/efr-service-go/services/tickets"
 	"github.com/guregu/dynamo"
 	"log"
 	"math/rand"
@@ -12,6 +13,8 @@ import (
 	"strconv"
 	"time"
 )
+
+const PRIZE = 10
 
 func test() {
 
@@ -45,6 +48,16 @@ func pickWinner() {
 		fmt.Printf(err.Error())
 	}
 
+	tk := new(s.Tickets)
+	pastWinner := tk.GetWinners()[0]
+	fmt.Println(pastWinner)
+
+	var moneyPot int64 = PRIZE
+
+	if !pastWinner.Claimed {
+		moneyPot = moneyPot + pastWinner.MoneyPot
+	}
+
 	fmt.Printf("We have %d raffle tickets in the pot\n", len(tickets))
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -59,6 +72,7 @@ func pickWinner() {
 		Entrants:      strconv.Itoa(len(tickets)),
 		WinningTicket: luckyTicket,
 		Claimed:       false,
+		MoneyPot:      moneyPot,
 	}
 	tblWinners.Put(winner).Run()
 }
