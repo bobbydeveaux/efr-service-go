@@ -35,7 +35,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	})
 
 	fmt.Println(res["id"])
-	if res["id"] == nil {
+	if res["id"] == nil || res["email"] == nil {
 		var b = []byte("{\"error\": \"invalid access token\"}")
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
