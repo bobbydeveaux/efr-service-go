@@ -9,11 +9,18 @@ import (
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
 	pbu "github.com/bobbydeveaux/efr-service-go/proto/user"
 	"github.com/bobbydeveaux/efr-service-go/rest/auth"
+	s "github.com/bobbydeveaux/efr-service-go/services/tickets"
 	"github.com/dvsekhvalnov/jose2go"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
+	"math/rand"
+	"os"
 	"strconv"
+	"time"
 )
 
 const (
@@ -214,4 +221,51 @@ func ClaimWin(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 	return
 
+}
+
+const PRIZE = 10
+
+// THis really shouldnt be here. Horrible.
+func PickWinner(w http.ResponseWriter, r *http.Request) {
+
+	db := dynamo.New(session.New(), &aws.Config{
+		Endpoint:                      aws.String(os.Getenv("DYNAMO_ADDR")),
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		Region: aws.String("eu-west-1")})
+	tblTickets := db.Table("Tickets")
+	tblWinners := db.Table("Winners")
+
+	var tickets []pb.TicketReply_Ticket
+	err := tblTickets.Scan().All(&tickets)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	tk := new(s.Tickets)
+	pastWinner := tk.GetWinners()[0]
+	fmt.Println(pastWinner)
+
+	var moneyPot int64 = PRIZE
+
+	if !pastWinner.Claimed {
+		moneyPot = moneyPot + pastWinner.MoneyPot
+	}
+
+	fmt.Printf("We have %d raffle tickets in the pot\n", len(tickets))
+
+	rd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var luckyTicket = &tickets[rd.Intn(len(tickets))]
+	fmt.Println("Magic 8-Ball says:", luckyTicket.GetEmail())
+
+	var TimeNow = time.Now().Unix()
+	strTimeNow := strconv.FormatInt(TimeNow, 10)
+	var winner = &pb.WinnerReply_Winner{
+		WinnerID:      TimeNow,
+		DateTime:      strTimeNow,
+		Entrants:      strconv.Itoa(len(tickets)),
+		WinningTicket: luckyTicket,
+		Claimed:       false,
+		MoneyPot:      moneyPot,
+	}
+	tblWinners.Put(winner).Run()
 }
