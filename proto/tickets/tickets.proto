@@ -47,6 +47,7 @@ message WinnerReply {
       TicketReply.Ticket WinningTicket = 4;
       bool Claimed = 5;
       int64 MoneyPot = 6;
+      bool Paid = 7;
     }
  
     repeated Winner Winners = 1;
