@@ -98,7 +98,7 @@ func (m *TicketReply) GetTickets() []*TicketReply_Ticket {
 
 type TicketReply_Ticket struct {
 	TicketID string `protobuf:"bytes,1,opt,name=TicketID,json=ticketID" json:"TicketID,omitempty"`
-	Email    string `protobuf:"bytes,2,opt,name=Email,json=email" json:"Email,omitempty"`
+	Email    string `protobuf:"bytes,2,opt,name=Email,json=email" json:"-"`
 	SocialID string `protobuf:"bytes,3,opt,name=SocialID,json=socialID" json:"SocialID,omitempty"`
 	Referrer int64  `protobuf:"varint,4,opt,name=Referrer,json=referrer" json:"Referrer,omitempty"`
 	Bonus    bool   `protobuf:"varint,5,opt,name=Bonus,json=bonus" json:"Bonus,omitempty"`

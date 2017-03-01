@@ -44,6 +44,7 @@ fmt:
 protoc:
 	protoc -I ./proto/tickets ./proto/tickets/tickets.proto --go_out=plugins=grpc:proto/tickets 
 	protoc -I ./proto/user ./proto/user/user.proto --go_out=plugins=grpc:proto/user 
+	sed -i '' 's/Email,omitempty/-/g' proto/tickets/tickets.pb.go 
 
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
