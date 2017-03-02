@@ -43,7 +43,6 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 
 	referrer := r.URL.Query().Get("referrer")
 
-	int64referrer, _ := strconv.ParseInt(referrer, 10, 64)
 	fmt.Println("WAAT")
 	// decode the jwt to grab the email.
 	passphrase := auth.GetPassphrase()
@@ -75,7 +74,7 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 
 	// Contact the server and print out its response.
 
-	rpc, err := c.NewTicket(context.Background(), &pb.TicketRequest{Email: User.GetEmail(), Socialid: User.GetSocialID(), Referrer: int64referrer})
+	rpc, err := c.NewTicket(context.Background(), &pb.TicketRequest{Email: User.GetEmail(), Socialid: User.GetSocialID(), Referrer: referrer})
 	if err != nil {
 		fmt.Println("could not greet: %v", err)
 	}

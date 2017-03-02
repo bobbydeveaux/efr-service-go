@@ -8,14 +8,16 @@ import (
 	"github.com/dvsekhvalnov/jose2go"
 	fb "github.com/huandu/facebook"
 	"net/http"
+	"time"
 )
 
 const passphrase string = "arse string"
 
 type Token struct {
-	Token     string `json:"token"`
-	FirstName string `json:"first_name"`
-	SocialID  string `json:"social_id"`
+	Token     string   `json:"token"`
+	FirstName string   `json:"first_name"`
+	SocialID  string   `json:"social_id"`
+	User      *pb.User `json:"user"`
 }
 
 func GetPassphrase() string {
@@ -34,7 +36,6 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		"access_token": accessToken,
 	})
 
-	fmt.Println(res["id"])
 	if res["id"] == nil || res["email"] == nil {
 		var b = []byte("{\"error\": \"invalid access token\"}")
 
@@ -43,12 +44,17 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var SocialID = "FB" + res["id"].(string)
+
 	var User = &pb.User{
-		SocialID:  res["id"].(string),
+		SocialID:  SocialID,
 		Email:     res["email"].(string),
 		FirstName: res["first_name"].(string),
 		Name:      res["name"].(string),
+		LastLogin: time.Now().Unix(),
 	}
+
+	updateUser(User)
 
 	payload, err := json.Marshal(User)
 	strPayload := string(payload[:])
@@ -63,7 +69,8 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	var token = &Token{
 		Token:     secureToken,
 		FirstName: User.GetFirstName(),
-		SocialID:  res["id"].(string),
+		SocialID:  SocialID,
+		User:      User,
 	}
 
 	response, _ := json.Marshal(token)
@@ -78,4 +85,8 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(response)
+}
+
+func updateUser(user *pb.User) {
+
 }

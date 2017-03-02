@@ -11,4 +11,5 @@ message User {
   string Email     = 2;
   string FirstName = 3;
   string Name      = 4;
+  int64 LastLogin = 5;
 }

@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"sort"
-	"strconv"
 )
 
 type Tickets struct {
@@ -21,7 +20,7 @@ var db = dynamo.New(session.New(), &aws.Config{
 	Region: aws.String("eu-west-1")})
 var table = db.Table("Tickets")
 
-func (a *Tickets) NewTicket(email string, socialID string, referrer int64) []*pb.TicketReply_Ticket {
+func (a *Tickets) NewTicket(email string, socialID string, referrer string) []*pb.TicketReply_Ticket {
 
 	log.Println("New Ticket")
 	var exist []*pb.TicketReply_Ticket
@@ -49,7 +48,7 @@ func (a *Tickets) NewTicket(email string, socialID string, referrer int64) []*pb
 
 	// Is this a valid referrer?
 	if valid, referrerEmail := checkReferrer(referrer); valid == false {
-		referrer = 0
+		referrer = ""
 	} else {
 		// Give the referra their bonus ticket
 		go referralTicket(referrer, referrerEmail)
@@ -155,14 +154,14 @@ func (a *Tickets) ClaimWin(socialID string) bool {
 	return true
 }
 
-func checkReferrer(referrer int64) (bool, string) {
+func checkReferrer(referrer string) (bool, string) {
 	var exist []pb.TicketReply_Ticket
 	log.Println("Checking referrer")
 
 	log.Println(exist)
 
 	//err := table.Get("Email", email).All(&exist)
-	err := table.Scan().Filter("SocialID = ?", strconv.FormatInt(referrer, 10)).Consistent(true).All(&exist)
+	err := table.Scan().Filter("SocialID = ?", referrer).Consistent(true).All(&exist)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -173,12 +172,12 @@ func checkReferrer(referrer int64) (bool, string) {
 		return true, exist[0].GetEmail()
 	}
 
-	log.Println("Invalid referrer: " + strconv.FormatInt(referrer, 10))
+	log.Println("Invalid referrer: " + referrer)
 	return false, ""
 
 }
 
-func referralTicket(referrer int64, referrerEmail string) {
+func referralTicket(referrer string, referrerEmail string) {
 
 	ticketID := randomizr.Generate(22)
 
@@ -186,8 +185,8 @@ func referralTicket(referrer int64, referrerEmail string) {
 	ticket := &pb.TicketReply_Ticket{
 		TicketID: ticketID,
 		Email:    referrerEmail,
-		SocialID: strconv.FormatInt(referrer, 10),
-		Referrer: 0,
+		SocialID: referrer,
+		Referrer: "",
 		Bonus:    true,
 	}
 
