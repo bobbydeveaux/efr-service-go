@@ -4,14 +4,21 @@ import (
 	"encoding/json"
 
 	"fmt"
-	pb "github.com/bobbydeveaux/efr-service-go/proto/user"
+	pb "github.com/bobbydeveaux/efr-service-go/proto/users"
 	"github.com/dvsekhvalnov/jose2go"
 	fb "github.com/huandu/facebook"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"log"
 	"net/http"
 	"time"
 )
 
 const passphrase string = "arse string"
+
+const (
+	address = "localhost:50051"
+)
 
 type Token struct {
 	Token     string   `json:"token"`
@@ -88,5 +95,26 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateUser(user *pb.User) {
+	log.Println("Updating user")
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		fmt.Println("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewUsersClient(conn)
 
+	// Contact the server and print out its response.
+
+	rpc, err := c.UpdateUser(context.Background(), &pb.UserRequest{User: user})
+	if err != nil {
+		fmt.Println("could not greet: %v", err)
+	}
+
+	b, err := json.Marshal(rpc.User)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	log.Println(string(b))
 }

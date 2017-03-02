@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
-	pbu "github.com/bobbydeveaux/efr-service-go/proto/user"
+	pbu "github.com/bobbydeveaux/efr-service-go/proto/users"
 	"github.com/bobbydeveaux/efr-service-go/rest/auth"
 	s "github.com/bobbydeveaux/efr-service-go/services/tickets"
 	"github.com/dvsekhvalnov/jose2go"
@@ -240,14 +240,15 @@ func PickWinner(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf(err.Error())
 	}
 
-	tk := new(s.Tickets)
-	pastWinner := tk.GetWinners()[0]
-	fmt.Println(pastWinner)
-
 	var moneyPot int64 = PRIZE
-
-	if !pastWinner.Claimed {
-		moneyPot = moneyPot + pastWinner.MoneyPot
+	tk := new(s.Tickets)
+	winners := tk.GetWinners()
+	if len(winners) > 0 {
+		pastWinner := winners[0]
+		fmt.Println(pastWinner)
+		if !pastWinner.Claimed {
+			moneyPot = moneyPot + pastWinner.MoneyPot
+		}
 	}
 
 	fmt.Printf("We have %d raffle tickets in the pot\n", len(tickets))

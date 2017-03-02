@@ -2,11 +2,13 @@ package grpc
 
 import (
 	"github.com/bobbydeveaux/efr-service-go/services/tickets"
+	"github.com/bobbydeveaux/efr-service-go/services/users"
 
 	"log"
 	"net"
 
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
+	user "github.com/bobbydeveaux/efr-service-go/proto/users"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -47,6 +49,13 @@ func (s *server) ClaimWin(ctx context.Context, in *pb.ClaimRequest) (*pb.ClaimRe
 	return &pb.ClaimReply{Success: claim}, nil
 }
 
+// SayHello implements helloworld.GreeterServer
+func (s *server) UpdateUser(ctx context.Context, in *user.UserRequest) (*user.UserReply, error) {
+	u := new(users.Users)
+	ur := u.UpdateUser(in.GetUser())
+	return &user.UserReply{User: ur}, nil
+}
+
 func Serve() {
 
 	lis, err := net.Listen("tcp", port)
@@ -55,6 +64,7 @@ func Serve() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterTicketsServer(s, &server{})
+	user.RegisterUsersServer(s, &server{})
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	if err := s.Serve(lis); err != nil {
