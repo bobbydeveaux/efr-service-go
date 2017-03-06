@@ -59,9 +59,10 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		FirstName: res["first_name"].(string),
 		Name:      res["name"].(string),
 		LastLogin: time.Now().Unix(),
+		Balance:   -1,
 	}
 
-	updateUser(User)
+	User = updateUser(User)
 
 	payload, err := json.Marshal(User)
 	strPayload := string(payload[:])
@@ -94,7 +95,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func updateUser(user *pb.User) {
+func updateUser(user *pb.User) *pb.User {
 	log.Println("Updating user")
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
@@ -111,10 +112,5 @@ func updateUser(user *pb.User) {
 		fmt.Println("could not greet: %v", err)
 	}
 
-	b, err := json.Marshal(rpc.User)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	log.Println(string(b))
+	return rpc.User
 }

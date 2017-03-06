@@ -15,6 +15,7 @@ message User {
   string FirstName = 3;
   string Name      = 4;
   int64 LastLogin = 5;
+  int64 Balance = 6;
 }
 
 // The request message containing the user's name.

@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bobbydeveaux/dynamo"
 	pb "github.com/bobbydeveaux/efr-service-go/proto/tickets"
+	"github.com/bobbydeveaux/efr-service-go/services/users"
 	"github.com/bobbydeveaux/randomizr"
 	"log"
 	"os"
@@ -143,6 +144,20 @@ func (a *Tickets) ClaimWin(socialID string) bool {
 	winners := a.GetWinners()
 	if winners[0].WinningTicket.GetSocialID() != socialID {
 		return false
+	}
+
+	if winners[0].Claimed == true {
+		return false
+	}
+
+	if winners[0].Claimed == false {
+		u := new(users.Users)
+		user := u.GetUser(socialID)
+		log.Println("Updating balance with money pot of ", winners[0].MoneyPot)
+		user.Balance = user.Balance + winners[0].MoneyPot
+		u.UpdateUser(user)
+		log.Println(user)
+		log.Println("Updated")
 	}
 
 	log.Println("Claiming Win")
