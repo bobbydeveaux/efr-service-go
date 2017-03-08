@@ -29,6 +29,7 @@ message TicketReply {
         string SocialID = 3;
         string Referrer = 4;
         bool Bonus = 5;
+        string PrivateEmail = 6;
     } 
  
     repeated Ticket Tickets = 2;

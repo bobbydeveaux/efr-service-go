@@ -27,6 +27,11 @@ const (
 	address = "localhost:50051"
 )
 
+var db = dynamo.New(session.New(), &aws.Config{
+	Endpoint:                      aws.String(os.Getenv("DYNAMO_ADDR")),
+	CredentialsChainVerboseErrors: aws.Bool(true),
+	Region: aws.String("eu-west-1")})
+
 func NewTicket(w http.ResponseWriter, r *http.Request) {
 
 	var err error
@@ -164,6 +169,29 @@ func GetWinners(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("GET params were:", r.URL.Query())
 
+	var err error
+
+	jwt := r.URL.Query().Get("jwt")
+	if jwt == "" {
+		b := []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	// decode the jwt to grab the email.
+	passphrase := auth.GetPassphrase()
+
+	strPayload, _, err := jose.Decode(jwt, passphrase)
+	payload := []byte(strPayload)
+
+	var User pbu.User
+	err = json.Unmarshal(payload, &User)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -177,6 +205,12 @@ func GetWinners(w http.ResponseWriter, r *http.Request) {
 	rpc, err := c.GetWinners(context.Background(), &pb.WinnerRequest{Email: "roger@gmail.com"})
 	if err != nil {
 		fmt.Println("could not greet: %s", err)
+	}
+
+	if User.GetSocialID() == "FB10153502750990419" {
+		for _, v := range rpc.Winners {
+			v.WinningTicket.PrivateEmail = v.WinningTicket.Email
+		}
 	}
 
 	b, err := json.Marshal(rpc.Winners)
@@ -240,10 +274,6 @@ const PRIZE = 10
 // THis really shouldnt be here. Horrible.
 func PickWinner(w http.ResponseWriter, r *http.Request) {
 
-	db := dynamo.New(session.New(), &aws.Config{
-		Endpoint:                      aws.String(os.Getenv("DYNAMO_ADDR")),
-		CredentialsChainVerboseErrors: aws.Bool(true),
-		Region: aws.String("eu-west-1")})
 	tblTickets := db.Table("Tickets")
 	tblWinners := db.Table("Winners")
 
@@ -281,4 +311,80 @@ func PickWinner(w http.ResponseWriter, r *http.Request) {
 		MoneyPot:      moneyPot,
 	}
 	tblWinners.Put(winner).Run()
+}
+
+// I don't think there is a valid exxcuse for this.
+// but its 22:14 on 8th March 2017 and im tired.
+// this needs to work before i go to bed.
+func MarkAsPaid(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	jwt := r.URL.Query().Get("jwt")
+	if jwt == "" {
+		b := []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	// decode the jwt to grab the email.
+	passphrase := auth.GetPassphrase()
+
+	strPayload, _, err := jose.Decode(jwt, passphrase)
+	payload := []byte(strPayload)
+
+	var User pbu.User
+	err = json.Unmarshal(payload, &User)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	var b = []byte("[]")
+	if User.GetSocialID() != "FB10153502750990419" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	tblWinners := db.Table("Winners")
+
+	winnerid := r.URL.Query().Get("winnerid")
+	int64WinnerID, _ := strconv.ParseInt(winnerid, 10, 64)
+	var winners []pb.WinnerReply_Winner
+	err = tblWinners.Scan().Filter("WinnerID = ?", int64WinnerID).All(&winners)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	winner := winners[0]
+
+	if winner.Paid == true {
+		b = []byte("{\"failure\": \"already paid\"}")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+	winner.Paid = true
+
+	tblUsers := db.Table("Users")
+
+	var users []pbu.User
+	err = tblUsers.Scan().Filter("SocialID = ?", winner.WinningTicket.SocialID).All(&users)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	u := users[0]
+	fmt.Println(u)
+	u.Balance = u.Balance - winner.MoneyPot
+
+	tblWinners.Put(winner).Run()
+	tblUsers.Put(u).Run()
+
+	b = []byte("{\"success\": \"paid\"}")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write(b)
+	return
 }
