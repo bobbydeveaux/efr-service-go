@@ -79,10 +79,15 @@ func (a *Tickets) NewTicket(email string, socialID string, referrer string) []*p
 	return tickets
 }
 
-func (a *Tickets) GetTickets(socialID string) []*pb.TicketReply_Ticket {
+func (a *Tickets) GetTickets(socialID string, fullcount bool) []*pb.TicketReply_Ticket {
 	var tickets []*pb.TicketReply_Ticket
-	//err := table.Get("Email", email).All(&exist)
-	err := table.Scan().Filter("SocialID = ?", socialID).Consistent(true).All(&tickets)
+	var err error
+	if fullcount == true {
+		err = table.Scan().Consistent(true).All(&tickets)
+	} else {
+		err = table.Scan().Filter("SocialID = ?", socialID).Consistent(true).All(&tickets)
+	}
+
 	if err != nil {
 		log.Println(err.Error())
 	}

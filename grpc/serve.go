@@ -31,7 +31,7 @@ func (s *server) NewTicket(ctx context.Context, in *pb.TicketRequest) (*pb.Ticke
 // SayHello implements helloworld.GreeterServer
 func (s *server) GetTickets(ctx context.Context, in *pb.TicketRequest) (*pb.TicketReply, error) {
 	tk := new(tickets.Tickets)
-	tickets := tk.GetTickets(in.GetSocialid())
+	tickets := tk.GetTickets(in.GetSocialid(), in.GetFullcount())
 	return &pb.TicketReply{Tickets: tickets}, nil
 }
 

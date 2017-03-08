@@ -106,6 +106,12 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var fullcount = false
+	if r.URL.Query().Get("fullcount") == "true" {
+		fullcount = true
+		fmt.Println("FULL COUNT")
+	}
+
 	// decode the jwt to grab the email.
 	passphrase := auth.GetPassphrase()
 
@@ -129,12 +135,19 @@ func GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	// Contact the server and print out its response.
 
-	rpc, err := c.GetTickets(context.Background(), &pb.TicketRequest{Socialid: User.GetSocialID()})
+	rpc, err := c.GetTickets(context.Background(), &pb.TicketRequest{Socialid: User.GetSocialID(), Fullcount: fullcount})
 	if err != nil {
 		fmt.Println("could not greet: %s", err)
 	}
 
-	b, err := json.Marshal(rpc.Tickets)
+	var b = []byte("[]")
+
+	if fullcount == true {
+		b = []byte("{\"count\":" + strconv.Itoa(len(rpc.Tickets)) + "}")
+	} else {
+		b, err = json.Marshal(rpc.Tickets)
+	}
+
 	if err != nil {
 		fmt.Println("error:", err)
 	}

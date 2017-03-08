@@ -16,6 +16,7 @@ message TicketRequest {
   string email = 1;
   string socialid = 2;
   string referrer = 3;
+  bool fullcount = 4;
 }
 
 // The response message containing the greetings
