@@ -79,6 +79,47 @@ func (a *Tickets) NewTicket(email string, socialID string, referrer string) []*p
 	return tickets
 }
 
+func (a *Tickets) BonusTicket(email string, socialID string, referrer string) []*pb.TicketReply_Ticket {
+
+	log.Println("Bonus Ticket")
+
+	var exist []*pb.TicketReply_Ticket
+
+	err := table.Scan().Filter("DaysRemaining = ? AND SocialID = ?", 1, socialID).Consistent(true).All(&exist)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if len(exist) >= 10 {
+		var tickets = make([]*pb.TicketReply_Ticket, 1)
+		tickets[0] = &pb.TicketReply_Ticket{}
+		return tickets
+	}
+
+	// retrieve new ID from ID service
+	// @TODO
+	ticketID := randomizr.Generate(22)
+
+	// Make the ticket
+	ticket := &pb.TicketReply_Ticket{
+		TicketID:      ticketID,
+		Email:         email,
+		SocialID:      socialID,
+		Referrer:      referrer,
+		Bonus:         true,
+		DaysRemaining: 1,
+	}
+
+	log.Println("Creating ticket...")
+	log.Println(ticket)
+
+	// Insert into dynamo
+	go table.Put(ticket).Run()
+
+	var tickets = make([]*pb.TicketReply_Ticket, 1)
+	tickets[0] = ticket
+	return tickets
+}
+
 func (a *Tickets) GetTickets(socialID string, fullcount bool) []*pb.TicketReply_Ticket {
 	var tickets []*pb.TicketReply_Ticket
 	var err error

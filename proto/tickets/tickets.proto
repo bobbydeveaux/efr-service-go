@@ -6,6 +6,7 @@ package Tickets;
 service Tickets {
   // Sends a greeting
   rpc NewTicket(TicketRequest) returns (TicketReply) {}
+  rpc BonusTicket(TicketRequest) returns (TicketReply) {}
   rpc GetTickets(TicketRequest) returns (TicketReply) {}
   rpc GetWinners(WinnerRequest) returns (WinnerReply) {}
   rpc ClaimWin(ClaimRequest) returns (ClaimReply) {}
@@ -30,6 +31,7 @@ message TicketReply {
         string Referrer = 4;
         bool Bonus = 5;
         string PrivateEmail = 6;
+        int64 DaysRemaining = 7;
     } 
  
     repeated Ticket Tickets = 2;

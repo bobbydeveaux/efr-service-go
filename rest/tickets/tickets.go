@@ -97,6 +97,71 @@ func NewTicket(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func BonusTicket(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	fmt.Println("GET params were:", r.URL.Query())
+
+	jwt := r.URL.Query().Get("jwt")
+	if jwt == "" {
+		b := []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	referrer := r.URL.Query().Get("referrer")
+
+	fmt.Println("BONUS TICKET")
+	// decode the jwt to grab the email.
+	passphrase := auth.GetPassphrase()
+
+	strPayload, _, err := jose.Decode(jwt, passphrase)
+	payload := []byte(strPayload)
+
+	var User pbu.User
+	err = json.Unmarshal(payload, &User)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	if err != nil || User.GetEmail() == "" {
+		var b = []byte("[]")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
+
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		fmt.Println("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := pb.NewTicketsClient(conn)
+
+	// Contact the server and print out its response.
+
+	rpc, err := c.BonusTicket(context.Background(), &pb.TicketRequest{Email: User.GetEmail(), Socialid: User.GetSocialID(), Referrer: referrer})
+	if err != nil {
+		fmt.Println("could not greet: %v", err)
+	}
+
+	b, err := json.Marshal(rpc.Tickets)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	if b == nil {
+		b = []byte("[]")
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Write(b)
+}
+
 func GetTickets(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("GET params were:", r.URL.Query())
@@ -311,6 +376,25 @@ func PickWinner(w http.ResponseWriter, r *http.Request) {
 		MoneyPot:      moneyPot,
 	}
 	tblWinners.Put(winner).Run()
+
+	deleteExpiredTickets()
+
+}
+
+func deleteExpiredTickets() {
+	tblTickets := db.Table("Tickets")
+
+	var tickets []pb.TicketReply_Ticket
+	err := tblTickets.Scan().Filter("DaysRemaining = ?", 1).All(&tickets)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	for _, t := range tickets {
+		fmt.Println(t.GetTicketID())
+		go tblTickets.Delete("TicketID", t.GetTicketID()).Run()
+	}
+
 }
 
 // I don't think there is a valid exxcuse for this.
