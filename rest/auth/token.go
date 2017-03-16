@@ -37,6 +37,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 
 	//socialNetwork := r.URL.Query().Get("social_network")
 	accessToken := r.URL.Query().Get("access_token")
+	referrer := r.URL.Query().Get("referrer")
 
 	res, _ := fb.Get("/me", fb.Params{
 		"fields":       "id,name,email,age_range,birthday,currency,first_name,devices,about,friends",
@@ -59,6 +60,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 		FirstName: res["first_name"].(string),
 		Name:      res["name"].(string),
 		LastLogin: time.Now().Unix(),
+		Referrer:  referrer,
 		Balance:   -1,
 	}
 

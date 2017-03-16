@@ -31,7 +31,7 @@ func (a *Users) UpdateUser(u2 *user.User) *user.User {
 		u1 = u2
 		u1.Balance = 0
 	} else {
-		// iser exists, only update balance & last login
+		// user exists, only update balance & last login
 		u1.LastLogin = u2.GetLastLogin()
 		if u2.Balance >= 0 {
 			u1.Balance = u2.GetBalance()

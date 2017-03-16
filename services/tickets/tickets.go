@@ -104,7 +104,6 @@ func (a *Tickets) BonusTicket(email string, socialID string, referrer string) []
 		TicketID:      ticketID,
 		Email:         email,
 		SocialID:      socialID,
-		Referrer:      referrer,
 		Bonus:         true,
 		DaysRemaining: 1,
 	}
@@ -247,7 +246,6 @@ func referralTicket(referrer string, referrerEmail string) {
 		TicketID: ticketID,
 		Email:    referrerEmail,
 		SocialID: referrer,
-		Referrer: "",
 		Bonus:    true,
 	}
 
