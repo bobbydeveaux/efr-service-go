@@ -14,6 +14,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
+	"github.com/bobbydeveaux/efr-service-go/email"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
@@ -378,6 +380,24 @@ func PickWinner(w http.ResponseWriter, r *http.Request) {
 	tblWinners.Put(winner).Run()
 
 	deleteExpiredTickets()
+
+	emailUsers(moneyPot)
+
+}
+
+func emailUsers(moneyPot int64) {
+	tblUsers := db.Table("Users")
+
+	var users []pbu.User
+	err := tblUsers.Scan().All(&users)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+
+	for _, u := range users {
+		fmt.Println(u.GetEmail())
+		go email.SendDailyReminderEmail("me@bobbyjason.co.uk", int(moneyPot))
+	}
 
 }
 
