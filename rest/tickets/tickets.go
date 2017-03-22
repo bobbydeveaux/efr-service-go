@@ -395,8 +395,7 @@ func emailUsers(moneyPot int64) {
 	}
 
 	for _, u := range users {
-		fmt.Println(u.GetEmail())
-		go email.SendDailyReminderEmail("me@bobbyjason.co.uk", int(moneyPot))
+		go email.SendDailyReminderEmail(u.GetEmail(), int(moneyPot))
 	}
 
 }
