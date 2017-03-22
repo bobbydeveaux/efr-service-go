@@ -25,7 +25,7 @@ gox \
 
 cp pkg/linux_amd64/efr-service-go bin/
 
-zip release/efr-service-go.zip -r Procfile bin
+zip release/efr-service-go.zip -r Procfile bin email/templates
 
 # Done!
 echo
