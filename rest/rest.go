@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bobbydeveaux/efr-service-go/rest/auth"
+	"github.com/bobbydeveaux/efr-service-go/rest/emails"
 	"github.com/bobbydeveaux/efr-service-go/rest/tickets"
 	"github.com/gorilla/mux"
 )
@@ -24,6 +25,7 @@ func Serve() {
 	router.HandleFunc("/claim", tickets.ClaimWin).Methods("GET")
 	router.HandleFunc("/markaspaid", tickets.MarkAsPaid).Methods("GET")
 	router.HandleFunc("/ILrjBUFER1QuA1jLLYmc", tickets.PickWinner).Methods("GET")
+	router.HandleFunc("/sendemail", emails.SendEmail).Methods("GET")
 
 	http.ListenAndServe(":8181", nil)
 }
