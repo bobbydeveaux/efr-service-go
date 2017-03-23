@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/bobbydeveaux/dynamo"
 	user "github.com/bobbydeveaux/efr-service-go/proto/users"
+	"github.com/nu7hatch/gouuid"
 	"log"
 	"os"
 )
@@ -26,15 +27,25 @@ func (a *Users) UpdateUser(u2 *user.User) *user.User {
 	fmt.Println("u1=", u1)
 	fmt.Println("u2=", u2)
 
+	u5, err := uuid.NewV5(uuid.NamespaceURL, []byte(u2.GetEmail()))
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	// if u1 is esmpty, user doest exist so create a new one
 	if u1.GetSocialID() == "" {
 		u1 = u2
 		u1.Balance = 0
+		u1.UserID = u5.String()
 	} else {
 		// user exists, only update balance & last login
 		u1.LastLogin = u2.GetLastLogin()
 		if u2.Balance >= 0 {
 			u1.Balance = u2.GetBalance()
+		}
+
+		if u2.GetUserID() == "" {
+			u1.UserID = u5.String()
 		}
 	}
 
