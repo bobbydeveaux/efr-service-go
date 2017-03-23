@@ -17,6 +17,7 @@ message User {
   int64 LastLogin = 5;
   int64 Balance = 6;
   string Referrer = 7;
+  string UserID = 8;
 }
 
 // The request message containing the user's name.
