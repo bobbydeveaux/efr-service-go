@@ -40,10 +40,25 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.URL.Query().Get("access_token")
 	referrer := r.URL.Query().Get("referrer")
 
-	res, _ := fb.Get("/me", fb.Params{
+	res, err := fb.Get("/me", fb.Params{
 		"fields":       "id,name,email,age_range,birthday,currency,first_name,devices,about,friends",
 		"access_token": accessToken,
 	})
+
+	if err != nil {
+		var buffer bytes.Buffer
+		buffer.WriteString("{\"error\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(err.Error())
+		buffer.WriteString("\"")
+		buffer.WriteString("}")
+
+		var b = []byte(buffer.String())
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Write(b)
+		return
+	}
 
 	if res["id"] == nil || res["email"] == nil {
 		var buffer bytes.Buffer
