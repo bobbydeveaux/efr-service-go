@@ -41,7 +41,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	referrer := r.URL.Query().Get("referrer")
 
 	res, err := fb.Get("/me", fb.Params{
-		"fields":       "id,name,email,age_range,birthday,currency,first_name,devices,about,friends",
+		"fields":       "id,name,email,first_name",
 		"access_token": accessToken,
 	})
 
