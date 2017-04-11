@@ -34,6 +34,7 @@ func GetPassphrase() string {
 
 func GetToken(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Println("GET params were:", r.URL.Query())
 
 	//socialNetwork := r.URL.Query().Get("social_network")
@@ -55,7 +56,6 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 
 		var b = []byte(buffer.String())
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Write(b)
 		return
 	}
