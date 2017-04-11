@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 
+	"bytes"
 	"fmt"
 	pb "github.com/bobbydeveaux/efr-service-go/proto/users"
 	"github.com/dvsekhvalnov/jose2go"
@@ -45,7 +46,14 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if res["id"] == nil || res["email"] == nil {
-		var b = []byte("{\"error\": \"invalid access token\"}")
+		var buffer bytes.Buffer
+		buffer.WriteString("{\"error\": \"invalid access token\", \"email\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(res["email"].(string))
+		buffer.WriteString("\"")
+		buffer.WriteString("}")
+
+		var b = []byte(buffer.String())
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Write(b)
